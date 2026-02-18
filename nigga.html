@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video</title>
+    <style>
+        /* Thiết lập nền đen và căn giữa video */
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Ẩn thanh cuộn */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Video sẽ hiển thị to nhất có thể nhưng vẫn giữ đúng tỷ lệ */
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Đảm bảo video không bị méo */
+            max-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 
+      - autoplay: Tự động chạy
+      - loop: Lặp lại liên tục
+      - controls: Hiện thanh điều khiển (tua, chỉnh âm lượng)
+      - playsinline: Hỗ trợ chạy trên mobile không bị full screen đè
+    -->
+    <video autoplay loop controls playsinline>
+        <source src="myvideo.mp4" type="video/mp4">
+        Trình duyệt của bạn không hỗ trợ thẻ video.
+    </video>
+
+</body>
+</html>

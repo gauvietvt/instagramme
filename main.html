@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Clone</title>
+    <style>
+        /* --- 1. GLOBAL RESET --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #fafafa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #262626;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- 2. SIDEBAR --- */
+        .sidebar {
+            width: 72px;
+            height: 100vh;
+            background-color: #fff;
+            border-right: 1px solid #dbdbdb;
+            position: fixed;
+            top: 0; left: 0;
+            padding: 20px 12px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            z-index: 1000;
+        }
+        .nav-links, .nav-footer { display: flex; flex-direction: column; gap: 24px; align-items: center; }
+        .logo-link { margin-bottom: 20px; padding: 10px; display: flex; justify-content: center; }
+        .nav-item {
+            display: flex; align-items: center; justify-content: center;
+            color: #000; text-decoration: none; position: relative;
+            padding: 10px; border-radius: 8px; transition: background-color 0.2s;
+        }
+        .nav-item:hover { background-color: #f2f2f2; transform: scale(1.05); }
+        .nav-item svg { width: 24px; height: 24px; display: block; }
+        .notification-badge {
+            position: absolute; top: 6px; right: 6px;
+            background-color: #ff3040; color: white; font-size: 10px; font-weight: bold;
+            height: 16px; min-width: 16px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; border: 2px solid #fff;
+        }
+        .sidebar-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+        .nav-footer { margin-bottom: 20px; }
+
+        /* --- 3. MAIN CONTENT --- */
+        .main-content {
+            margin-left: 72px;
+            width: calc(100% - 72px);
+            display: flex; justify-content: center; padding-top: 40px;
+        }
+
+        /* --- 4. POST CARD --- */
+        .instagram-card {
+            background-color: #ffffff;
+            border: 1px solid #dbdbdb;
+            border-radius: 3px;
+            width: 100%; max-width: 470px; margin-bottom: 60px;
+        }
+        .card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px; border-bottom: 1px solid #efefef; }
+        .user-info { display: flex; align-items: center; font-weight: 600; font-size: 14px; color: #262626; text-decoration: none; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-right: 10px; border: 1px solid #dbdbdb; }
+        
+        .more-options-btn { background: none; border: none; cursor: pointer; padding: 8px; }
+
+        /* --- KHẮC PHỤC LỖI HIỂN THỊ SLIDER TẠI ĐÂY --- */
+        .card-media { position: relative; width: 100%; padding-top: 100%; overflow: hidden; }
+        
+        .slider-wrapper { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; /* Xếp hàng ngang */
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .slide { 
+            /* QUAN TRỌNG: Ép mỗi slide chiếm đúng 100% chiều rộng khung chứa */
+            min-width: 100%; 
+            flex: 0 0 100%; 
+            
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: #000;
+        }
+        .slide img, .slide video { width: 100%; height: 100%; object-fit: cover; }
+
+        .control-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.7); border: none; border-radius: 50%;
+            width: 30px; height: 30px; cursor: pointer; z-index: 10;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .prev-btn { left: 10px; display: none; } /* Mặc định ẩn nút back */
+        .next-btn { right: 10px; }
+
+        .pagination-dots { position: absolute; bottom: 15px; width: 100%; z-index: 5; display: flex; justify-content: center; gap: 4px; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background-color: rgba(255,255,255, 0.4); transition: all 0.2s; }
+        .dot.active { background-color: #fff; }
+
+        .card-actions { padding: 12px 14px; display: flex; justify-content: space-between; }
+        .action-left { display: flex; gap: 16px; }
+        .icon-btn { background: none; border: none; cursor: pointer; padding: 0; }
+        .icon-btn svg { display: block; width: 24px; height: 24px; }
+        .icon-btn:hover { opacity: 0.7; }
+
+        .card-content-text { padding: 0 14px 14px 14px; font-size: 14px; }
+        .likes { font-weight: 600; margin-bottom: 8px; display: block; cursor: pointer;}
+        .caption { margin-bottom: 8px; line-height: 18px; }
+        .caption-username { font-weight: 600; margin-right: 5px; cursor: pointer; }
+        .comments-link { color: #8e8e8e; text-decoration: none; margin-bottom: 8px; display: block; }
+        .timestamp { font-size: 10px; color: #8e8e8e; text-transform: uppercase; letter-spacing: 0.2px; }
+
+        .card-footer { padding: 14px; border-top: 1px solid #efefef; display: flex; align-items: center; }
+        .emoji-btn { background: none; border: none; cursor: pointer; padding-right: 12px; }
+        .comment-input { border: none; flex-grow: 1; font-size: 14px; outline: none; height: 18px; }
+        .post-btn { background: none; border: none; color: #0095f6; font-weight: 600; font-size: 14px; cursor: pointer; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="nav-links">
+            <a href="nigga.html" class="logo-link nav-item">
+                <svg aria-label="Instagram" fill="#000" height="24" viewBox="0 0 24 24" width="24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"></path></svg>
+            </a>
+            <a href="nigga.html" class="nav-item"><svg aria-label="Home" fill="#000" height="24" viewBox="0 0 24 24" width="24"><path d="M22 23h-6.001a1 1 0 01-1-1v-5.455a2.997 2.997 0 10-5.993 0V22a1 1 0 01-1 1H2a1 1 0 01-1-1V11.543a1.002 1.002 0 01.31-.724l10-9.543a1.001 1.001 0 011.38 0l10 9.543a1.002 1.002 0 01.31.724V22a1 1 0 01-1 1z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></svg></a>
+            <a href="nigga.html" class="nav-item"><svg aria-label="Reels" fill="#000" height="24" viewBox="0 0 24 24" width="24"><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2" x1="2.049" x2="21.95" y1="7.002" y2="7.002"></line><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="13.504" x2="16.362" y1="2.001" y2="7.002"></line><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="7.207" x2="10.002" y1="2.11" y2="7.002"></line><path d="M2 12.001v3.449c0 2.849.698 4.006 1.606 4.945.94.908 2.098 1.607 4.946 1.607h6.896c2.848 0 4.006-.699 4.946-1.607.908-.939 1.606-2.096 1.606-4.945V8.552c0-2.848-.698-4.006-1.606-4.945C19.454 2.699 18.296 2 15.448 2H8.552c-2.848 0-4.006.699-4.946 1.607C2.698 4.546 2 5.704 2 8.552z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></a>
+            <a href="nigga.html" class="nav-item"><svg aria-label="Messenger" fill="#000" height="24" viewBox="0 0 24 24" width="24"><path d="M12.003 2.001a9.705 9.705 0 11-6.09 17.696.75.75 0 01-.358-.095l-3.327 1.11a.75.75 0 01-.948-.949l1.11-3.326a.75.75 0 01-.096-.359 9.702 9.702 0 019.709-14.077z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2"></path></svg><div class="notification-badge">1</div></a>
+            <a href="nigga.html" class="nav-item"><svg aria-label="Search" fill="#000" height="24" viewBox="0 0 24 24" width="24"><path d="M19 10.5A8.5 8.5 0 1110.5 2a8.5 8.5 0 018.5 8.5z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="16.511" x2="22" y1="16.511" y2="22"></line></svg></a>
+            <a href="nigga.html" class="nav-item"><svg aria-label="Explore" fill="#000" height="24" viewBox="0 0 24 24" width="24"><polygon fill="none" points="13.941 13.953 7.581 16.424 10.06 10.056 16.42 7.585 13.941 13.953" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polygon><circle cx="12" cy="12" fill="none" r="10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle></svg></a>
+            <a href="nigga.html" class="nav-item"><svg aria-label="Notifications" fill="#000" height="24" viewBox="0 0 24 24" width="24"><path d="M16.792 3.904A4.989 4.989 0 0121.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 014.708-5.218 4.21 4.21 0 013.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 013.679-1.938m0-2a6.04 6.04 0 00-4.797 2.127 6.052 6.052 0 00-4.787-2.127A6.985 6.985 0 00.5 9.122c0 3.61 2.55 5.827 5.015 7.97 2.867 2.493 4.308 3.671 5.718 4.568l.004.003.003-.003c1.464-.937 3.326-2.222 6.482-4.96 2.046-1.776 5.278-4.339 5.278-7.578a6.985 6.985 0 00-6.708-7.218z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></a>
+            <a href="nigga.html" class="nav-item"><svg aria-label="New Post" fill="#000" height="24" viewBox="0 0 24 24" width="24"><path d="M2 12v3.45c0 2.849.698 4.005 1.606 4.944.94.909 2.098 1.608 4.946 1.608h6.896c2.848 0 4.006-.7 4.946-1.608.908-.939 1.606-2.095 1.606-4.944V8.55c0-2.849-.698-4.006-1.606-4.944C19.454 2.698 18.296 2 15.448 2H8.552c-2.848 0-4.006.698-4.946 1.607C2.698 4.547 2 5.703 2 8.55V12z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="6.545" x2="17.455" y1="12.001" y2="12.001"></line><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="12.003" x2="12.003" y1="6.545" y2="17.455"></line></svg></a>
+            <a href="nigga.html" class="nav-item"><img src="stefani.png" alt="Profile" class="sidebar-avatar" onerror="this.src='https://via.placeholder.com/24'"></a>
+        </div>
+        <div class="nav-footer">
+            <a href="nigga.html" class="nav-item"><svg aria-label="Threads" fill="#000" height="24" viewBox="0 0 24 24" width="24"><path d="M12.722 2.375a8.55 8.55 0 0 0-4.502.868 9.537 9.537 0 0 0-3.328 2.316 9.875 9.875 0 0 0-1.282 1.68 10.58 10.58 0 0 0-1.144 3.733 11.233 11.233 0 0 0 0 2.533 11.002 11.002 0 0 0 1.144 3.733 10.198 10.198 0 0 0 4.61 3.996 8.55 8.55 0 0 0 4.502.868 9.843 9.843 0 0 0 5.48-1.547l-.872-1.574a7.99 7.99 0 0 1-4.608 1.306 6.8 6.8 0 0 1-3.568-.696 8.358 8.358 0 0 1-3.664-3.15 9.172 9.172 0 0 1-.92-2.936 9.387 9.387 0 0 1 0-2.062 9.172 9.172 0 0 1 .92-2.936 8.358 8.358 0 0 1 3.664-3.15 6.8 6.8 0 0 1 3.568-.696 6.55 6.55 0 0 1 3.238.652 5.861 5.861 0 0 1 2.228 1.956 5.568 5.568 0 0 1 .808 3.018 5.768 5.768 0 0 1-1.762 4.092 5.923 5.923 0 0 1-4.22 1.54 4.597 4.597 0 0 1-3.232-1.12 3.684 3.684 0 0 1-1.12-2.696 4.607 4.607 0 0 1 1.252-3.256 4.394 4.394 0 0 1 3.2-1.206 3.614 3.614 0 0 1 2.766.974l1.248-1.314a5.334 5.334 0 0 0-4.014-1.46 6.136 6.136 0 0 0-4.484 1.706 5.498 5.498 0 0 0-1.546 4.054 5.42 5.42 0 0 0 1.638 3.988 6.357 6.357 0 0 0 4.498 1.576 7.666 7.666 0 0 0 5.438-1.996 7.502 7.502 0 0 0 2.302-5.32 7.307 7.307 0 0 0-1.074-3.95 7.653 7.653 0 0 0-2.92-2.58 8.27 8.27 0 0 0-4.086-.826z"></path></svg></a>
+            <a href="nigga.html" class="nav-item"><svg aria-label="Settings" fill="#000" height="24" viewBox="0 0 24 24" width="24"><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="3" x2="21" y1="4" y2="4"></line><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="3" x2="21" y1="12" y2="12"></line><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="3" x2="21" y1="20" y2="20"></line></svg></a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="instagram-card">
+            <div class="card-header">
+                <a href="nigga.html" class="user-info">
+                    <img src="stefani.png" alt="User Avatar" class="avatar" onerror="this.src='https://via.placeholder.com/32'">
+                    <span>stefani0828</span>
+                </a>
+                <button class="more-options-btn">
+                    <svg aria-label="More options" fill="#262626" height="24" viewBox="0 0 24 24" width="24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle></svg>
+                </button>
+            </div>
+
+            <div class="card-media">
+                <div class="slider-wrapper" id="slider">
+                    <!-- SLIDE 1: ẢNH (Hiện đầy đủ) -->
+                    <div class="slide">
+                        <img src="mypic.jpg" alt="Post Image" onerror="this.src='https://via.placeholder.com/600x600?text=mypic.jpg'">
+                    </div>
+                    
+                    <!-- SLIDE 2: VIDEO (Ẩn ở bên phải, bấm next mới qua) -->
+                    <div class="slide">
+                        <video id="postVideo" playsinline loop>
+                            <source src="myvideo.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+
+                <button class="control-btn prev-btn" id="prevBtn">
+                    <svg aria-label="Go back" fill="#262626" height="16" viewBox="0 0 24 24" width="16" style="transform: rotate(180deg);"><path d="M21 17.502a.997.997 0 01-.707-.293L12 8.913l-8.293 8.296a1 1 0 11-1.414-1.414l9-9.004a1.03 1.03 0 011.414 0l9 9.004A1 1 0 0121 17.502z"></path></svg>
+                </button>
+                <button class="control-btn next-btn" id="nextBtn">
+                    <svg aria-label="Next" fill="#262626" height="16" viewBox="0 0 24 24" width="16" style="transform: rotate(90deg);"><path d="M21 17.502a.997.997 0 01-.707-.293L12 8.913l-8.293 8.296a1 1 0 11-1.414-1.414l9-9.004a1.03 1.03 0 011.414 0l9 9.004A1 1 0 0121 17.502z"></path></svg>
+                </button>
+                 <div class="pagination-dots">
+                    <div class="dot active" data-index="0"></div>
+                    <div class="dot" data-index="1"></div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <div class="action-left">
+                    <button class="icon-btn"><svg aria-label="Like" fill="#262626" height="24" viewBox="0 0 24 24" width="24"><path d="M16.792 3.904A4.989 4.989 0 0121.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 014.708-5.218 4.21 4.21 0 013.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 013.679-1.938m0-2a6.04 6.04 0 00-4.797 2.127 6.052 6.052 0 00-4.787-2.127A6.985 6.985 0 00.5 9.122c0 3.61 2.55 5.827 5.015 7.97 2.867 2.493 4.308 3.671 5.718 4.568l.004.003.003-.003c1.464-.937 3.326-2.222 6.482-4.96 2.046-1.776 5.278-4.339 5.278-7.578a6.985 6.985 0 00-6.708-7.218z"></path></svg></button>
+                    <button class="icon-btn"><svg aria-label="Comment" fill="#262626" height="24" viewBox="0 0 24 24" width="24"><path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+                    <button class="icon-btn"><svg aria-label="Share Post" fill="#262626" height="24" viewBox="0 0 24 24" width="24"><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2" x1="22" x2="9.218" y1="3" y2="10.083"></line><polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></polygon></svg></button>
+                </div>
+                <div class="action-right">
+                    <button class="icon-btn"><svg aria-label="Save" fill="#262626" height="24" viewBox="0 0 24 24" width="24"><polygon fill="none" points="20 21 12 13.44 4 21 4 3 20 3 20 21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polygon></svg></button>
+                </div>
+            </div>
+
+            <div class="card-content-text">
+                <a href="nigga.html" class="likes" style="text-decoration:none; color:inherit;">8,293 likes</a>
+                <div class="caption">
+                    <span class="caption-username" onclick="location.href='nigga.html'">stefani0828</span>
+                    Sunday mood ☀️📹 <br>
+                    <span style="color:#00376b; cursor:pointer;" onclick="location.href='nigga.html'">#weekend</span> <span style="color:#00376b; cursor:pointer;" onclick="location.href='nigga.html'">#vibes</span>
+                </div>
+                <a href="nigga.html" class="comments-link">View all 120 comments</a>
+                <div class="timestamp">2 HOURS AGO</div>
+            </div>
+
+            <div class="card-footer">
+                <button class="emoji-btn"><svg aria-label="Emoji" fill="#262626" height="24" viewBox="0 0 24 24" width="24"><path d="M15.83 10.997a1.167 1.167 0 101.167 1.167 1.167 1.167 0 00-1.167-1.167zm-6.5 1.167a1.167 1.167 0 10-1.166 1.167 1.167 1.167 0 001.166-1.167zm5.163 3.24a3.406 3.406 0 01-4.982.007 1 1 0 10-1.557 1.256 5.397 5.397 0 008.09 0 1 1 0 00-1.55-1.263zM12 .503a11.5 11.5 0 1011.5 11.5A11.513 11.513 0 0012 .503zm0 21a9.5 9.5 0 119.5-9.5 9.51 9.51 0 01-9.5 9.5z"></path></svg></button>
+                <input type="text" class="comment-input" placeholder="Add a comment...">
+                <button class="post-btn">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const slider = document.getElementById('slider');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const dots = document.querySelectorAll('.dot');
+        const video = document.getElementById('postVideo');
+        
+        let currentIndex = 0; 
+        const totalSlides = 2; 
+
+        function updateSlider() {
+            // Dịch chuyển slide: 0% cho ảnh, -100% cho video
+            slider.style.transform = `translateX(-${currentIndex * 100}%)`; 
+            
+            if (currentIndex === 0) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'flex';
+                video.pause();
+            } else {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'none';
+                video.play();
+            }
+
+            dots.forEach((dot, index) => {
+                if (index === currentIndex) dot.classList.add('active');
+                else dot.classList.remove('active');
+            });
+        }
+
+        nextBtn.addEventListener('click', () => { if (currentIndex < totalSlides - 1) { currentIndex++; updateSlider(); } });
+        prevBtn.addEventListener('click', () => { if (currentIndex > 0) { currentIndex--; updateSlider(); } });
+        
+        // --- LOGIC CHUYỂN TRANG ---
+        const allButtons = document.querySelectorAll('button');
+        allButtons.forEach(btn => {
+            if (btn.id !== 'nextBtn' && btn.id !== 'prevBtn') {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = "nigga.html";
+                });
+            }
+        });
+    </script>
+</body>
+</html>
